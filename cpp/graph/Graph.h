@@ -16,12 +16,16 @@ public:
     bool hasLocation(const std::string& name) const;
     int indexOf(const std::string& name) const; // -1 if missing
 
-    // Adds an undirected weighted road. Returns false on invalid input.
+    // Adds an undirected weighted road (updates weight if it exists). Returns false on invalid input.
     bool addRoad(const std::string& a, const std::string& b, int distance);
+    bool removeRoad(const std::string& a, const std::string& b);
+    // Removes a vertex and all incident roads, re-indexing the remaining vertices.
+    bool removeLocation(const std::string& name);
 
     int size() const { return (int)names.size(); }
     const std::string& nameOf(int idx) const { return names[idx]; }
     const std::vector<Edge>& neighbors(int idx) const { return adj[idx]; }
+    int roadCount() const;
 
     void clear();
 
