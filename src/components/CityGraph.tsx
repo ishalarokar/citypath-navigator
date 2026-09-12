@@ -50,8 +50,8 @@ export function CityGraph({ graph, path, source, dest, onSelect }: Props) {
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="h-full w-full" role="img" aria-label="City road network">
       {graph.edges.map((e) => {
-        const [x1, y1] = pos[e.a];
-        const [x2, y2] = pos[e.b];
+        const [x1, y1] = pos[e.a] ?? [0, 0];
+        const [x2, y2] = pos[e.b] ?? [0, 0];
         const hot = onPath.has(`${e.a}|${e.b}`);
         return (
           <g key={`${e.a}-${e.b}`}>
