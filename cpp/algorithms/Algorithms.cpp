@@ -28,13 +28,14 @@ static RouteResult reconstruct(const Graph& g, const std::vector<int>& parent,
 
 RouteResult bfs(const Graph& g, int src, int dst) {
     int n = g.size();
-    std::vector<int> parent(n, -1);
+    std::vector<int> parent(n, -1), order;
     std::vector<bool> visited(n, false);
     std::queue<int> q;
     q.push(src);
     visited[src] = true;
     while (!q.empty()) {
         int u = q.front(); q.pop();
+        order.push_back(u);
         if (u == dst) break;
         for (const Edge& e : g.neighbors(u)) {
             if (!visited[e.to]) {
@@ -44,12 +45,15 @@ RouteResult bfs(const Graph& g, int src, int dst) {
             }
         }
     }
-    return reconstruct(g, parent, src, dst, "BFS");
+    RouteResult r = reconstruct(g, parent, src, dst, "BFS");
+    r.visited = order;
+    r.dataStructure = "Queue (FIFO)";
+    return r;
 }
 
 RouteResult dfs(const Graph& g, int src, int dst) {
     int n = g.size();
-    std::vector<int> parent(n, -1);
+    std::vector<int> parent(n, -1), order;
     std::vector<bool> visited(n, false);
     std::stack<int> st;
     st.push(src);
@@ -57,26 +61,30 @@ RouteResult dfs(const Graph& g, int src, int dst) {
         int u = st.top(); st.pop();
         if (visited[u]) continue;
         visited[u] = true;
+        order.push_back(u);
         if (u == dst) break;
         const auto& nb = g.neighbors(u);
         // Push in reverse so the first neighbor is explored first.
         for (int i = (int)nb.size() - 1; i >= 0; --i) {
             int v = nb[i].to;
             if (!visited[v]) {
-                if (parent[v] == -1) parent[v] = u;
+                parent[v] = u; // latest push wins: matches the vertex actually expanded from
                 st.push(v);
             }
         }
     }
-    // parent may reference an unvisited chain; fix by re-tracing only visited nodes.
-    if (!visited[dst]) { RouteResult r; r.algorithm = "DFS"; return r; }
-    return reconstruct(g, parent, src, dst, "DFS");
+    RouteResult r;
+    if (visited[dst]) r = reconstruct(g, parent, src, dst, "DFS");
+    r.algorithm = "DFS";
+    r.visited = order;
+    r.dataStructure = "Stack (LIFO)";
+    return r;
 }
 
 RouteResult dijkstra(const Graph& g, int src, int dst) {
     const int INF = std::numeric_limits<int>::max();
     int n = g.size();
-    std::vector<int> dist(n, INF), parent(n, -1);
+    std::vector<int> dist(n, INF), parent(n, -1), order;
     using P = std::pair<int, int>; // (distance, vertex)
     std::priority_queue<P, std::vector<P>, std::greater<P>> pq; // min-heap
     dist[src] = 0;
@@ -84,6 +92,7 @@ RouteResult dijkstra(const Graph& g, int src, int dst) {
     while (!pq.empty()) {
         auto [d, u] = pq.top(); pq.pop();
         if (d > dist[u]) continue;      // stale entry
+        order.push_back(u);             // u is settled with its final distance
         if (u == dst) break;
         for (const Edge& e : g.neighbors(u)) {
             int nd = d + e.weight;
@@ -94,8 +103,13 @@ RouteResult dijkstra(const Graph& g, int src, int dst) {
             }
         }
     }
-    if (dist[dst] == INF) { RouteResult r; r.algorithm = "Dijkstra"; return r; }
-    RouteResult r = reconstruct(g, parent, src, dst, "Dijkstra");
-    r.distance = dist[dst];
+    RouteResult r;
+    if (dist[dst] != INF) {
+        r = reconstruct(g, parent, src, dst, "Dijkstra");
+        r.distance = dist[dst];
+    }
+    r.algorithm = "Dijkstra";
+    r.visited = order;
+    r.dataStructure = "Priority Queue (Min-Heap)";
     return r;
 }
