@@ -100,7 +100,7 @@ function Index() {
     if (source === dest) return setNotice("Source and destination must be different.");
     const rs = ALGOS.map((a) => api.run(engine, a, source, dest));
     setComparison(rs);
-    const best = rs[2];
+    const best = rs[rs.length - 1]!;
     setResult(best);
     setAlgo("Dijkstra");
     animate(best);
