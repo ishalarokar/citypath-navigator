@@ -32,6 +32,12 @@ export function loadEngine(): Promise<RouteEngine> {
 export const api = {
   graph: (e: RouteEngine): GraphData => JSON.parse(e.getGraphJSON()),
   stats: (e: RouteEngine): GraphStats => JSON.parse(e.getStatsJSON()),
-  run: (e: RouteEngine, algo: Algo, s: string, d: string): RouteResult =>
-    JSON.parse(e.runAlgorithm(algo, s, d)),
+  run: (e: RouteEngine, algo: Algo, s: string, d: string): RouteResult => {
+    // Browser clocks are more precise than the WASM steady_clock for sub-ms runs.
+    const t0 = performance.now();
+    const r: RouteResult = JSON.parse(e.runAlgorithm(algo, s, d));
+    const jsUs = (performance.now() - t0) * 1000;
+    r.timeUs = r.timeUs > 0 ? r.timeUs : jsUs;
+    return r;
+  },
 };
