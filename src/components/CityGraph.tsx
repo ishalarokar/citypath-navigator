@@ -67,7 +67,7 @@ export function CityGraph({ graph, path, source, dest, onSelect }: Props) {
         );
       })}
       {graph.nodes.map((n) => {
-        const [x, y] = pos[n];
+        const [x, y] = pos[n] ?? [0, 0];
         const role = n === source ? "fill-node-source" : n === dest ? "fill-node-dest" : pathNodes.has(n) ? "fill-route" : "fill-node";
         return (
           <g key={n} transform={`translate(${x}, ${y})`} className="cursor-pointer" onClick={() => onSelect(n)}>
